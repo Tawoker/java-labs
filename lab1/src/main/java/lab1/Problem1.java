@@ -19,19 +19,9 @@ public class Problem1 {
      * Выход: false (9 = 0x9, не содержит A)
      */
     public static boolean containsDigitAInHexadecimalRepresentation(int number) {
-        // TODO: implement this method
-        String hexString = (Integer.toHexString(number)).toUpperCase();
-        boolean contains = hexString.contains("A");
+        String hexString = (Integer.toHexString(number));
+        boolean contains = hexString.contains("a");
 
         return contains;
     }
-
-
-
-
-
-
-
-
-
 }

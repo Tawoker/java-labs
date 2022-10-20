@@ -27,4 +27,13 @@ public class Problem3Tests {
 
         assertArrayEquals(Problem3.flattenMatrix(matrix), resultArr);
     }
+
+    @Test
+    void shouldReturnTrue3_ifMatrixFlatten() {
+
+        int[][] matrix = new int[0][0];
+        int[] resultArr = new int[0];
+
+        assertArrayEquals(Problem3.flattenMatrix(matrix), resultArr);
+    }
 }

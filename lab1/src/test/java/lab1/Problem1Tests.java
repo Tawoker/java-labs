@@ -30,5 +30,4 @@ public class Problem1Tests {
         // then
         assertFalse(actual);
     }
-
 }
