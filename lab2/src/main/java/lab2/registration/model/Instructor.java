@@ -10,6 +10,12 @@ public class Instructor extends lab2.registration.model.Person {
      */
     int[] canTeach;
 
-    // TODO: добавить геттеры и сеттеры
+    public int[] getCanTeach(){
+        return canTeach;
+    }
+
+    public void setCanTeach(int[] canTeach){
+        this.canTeach = canTeach;
+    }
     
 }

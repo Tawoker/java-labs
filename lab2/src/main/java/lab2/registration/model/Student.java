@@ -6,10 +6,15 @@ package lab2.registration.model;
 public class Student extends Person {
 
     /**
-     * список идентификаторов курсов (CourseInstance.id), пройденных студентом
+     * список идентификаторов курсов (CourseInfo.id), пройденных студентом
      */
     private long[] completedCourses;
 
-    // TODO: добавить геттеры и сеттеры
-    
+    public long[] getCompletedCourses() {
+        return completedCourses;
+    }
+
+    public void setCompletedCourses(long[] completedCourses) {
+        this.completedCourses = completedCourses;
+    }
 }
