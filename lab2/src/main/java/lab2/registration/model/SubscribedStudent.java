@@ -1,20 +1,20 @@
 package lab2.registration.model;
 
-import lab2.registration.reader.CourseDataReader;
-
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SubscribedStudent extends Student{
 
     /**
      * список курсов, на которые подписан студент
      */
-    private CourseInstanceWithSubscribe[] subscribedCourses;
+    private List<CourseInstanceWithSubscribe> subscribedCourses;
 
     private StudentCategory studentCategory;
 
     public SubscribedStudent() throws IOException {
-        subscribedCourses = new CourseInstanceWithSubscribe[new CourseDataReader().readCourseInstance().length];
+        subscribedCourses = new ArrayList<CourseInstanceWithSubscribe>();
     }
 
     public StudentCategory getStudentCategory() {
@@ -26,35 +26,19 @@ public class SubscribedStudent extends Student{
     }
 
     public void subscribeToCourse(CourseInstanceWithSubscribe courseInstance){
-        this.subscribedCourses[getAmountSubscribedCourses()] = courseInstance;
+        this.subscribedCourses.add(courseInstance);
     }
 
     public void unsubscribeByCourseInstanceId(long courseInstanceId){
-        boolean flag = false;
-        for (int i = 0; i < subscribedCourses.length - 1; i++) {
-            if (!flag)
-                if (subscribedCourses[i].getId() == courseInstanceId) {
-                    flag = true;
-                    subscribedCourses[i] = subscribedCourses[i + 1];
-                } else
-                    subscribedCourses[i] = subscribedCourses[i + 1];
-        }
-        subscribedCourses[subscribedCourses.length - 1] = null;
+        subscribedCourses.removeIf(course -> course.getId() == courseInstanceId);
     }
 
-    public CourseInstanceWithSubscribe[] getSubscribedCourses() {
+    public List<CourseInstanceWithSubscribe> getSubscribedCourses() {
         return subscribedCourses;
     }
 
-    public void setSubscribedCourses(CourseInstanceWithSubscribe[] subscribedCourses) {
+    public void setSubscribedCourses(List<CourseInstanceWithSubscribe> subscribedCourses) {
         this.subscribedCourses = subscribedCourses;
     }
 
-    public int getAmountSubscribedCourses() {
-        int amount = 0;
-        for (int i = 0; i < subscribedCourses.length; i++)
-            if(subscribedCourses[i] != null)
-                amount++;
-        return amount;
-    }
 }

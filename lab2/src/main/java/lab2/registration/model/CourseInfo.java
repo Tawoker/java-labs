@@ -1,5 +1,7 @@
 package lab2.registration.model;
 
+import java.util.List;
+
 /**
  * Класс для базовой информации о курсе
  */
@@ -23,12 +25,12 @@ public class CourseInfo {
     /**
      * Список идентификаторов курсов, которые нужно обязательно пройти до начала данного курса
      */
-    private long[] prerequisites;
+    private List<Long> prerequisites;
 
     /**
      * список категорий студентов, которые могут посещать курс
      */
-    private lab2.registration.model.StudentCategory[] studentCategories;
+    private List<StudentCategory> studentCategories;
 
     public long getId() {
         return id;
@@ -54,19 +56,19 @@ public class CourseInfo {
         this.description = description;
     }
 
-    public long[] getPrerequisites() {
+    public List<Long> getPrerequisites() {
         return prerequisites;
     }
 
-    public void setPrerequisites(long[] prerequisites) {
+    public void setPrerequisites(List<Long> prerequisites) {
         this.prerequisites = prerequisites;
     }
 
-    public StudentCategory[] getStudentCategories() {
+    public List<StudentCategory> getStudentCategories() {
         return studentCategories;
     }
 
-    public void setStudentCategories(StudentCategory[] studentCategories) {
+    public void setStudentCategories(List<StudentCategory> studentCategories) {
         this.studentCategories = studentCategories;
     }
 

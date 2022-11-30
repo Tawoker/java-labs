@@ -3,18 +3,20 @@ package lab2.registration.service;
 import lab2.registration.model.*;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.IntStream;
 
 public class StudentServiceImplement implements StudentService{
 
-    private CourseInfo[] coursesInfo;
+    private List<CourseInfo> coursesInfo;
 
-    private CourseInstanceWithSubscribe[] coursesWithSubs;
+    private List<CourseInstanceWithSubscribe> coursesWithSubs;
 
-    private SubscribedStudent[] subscribedStudents;
+    private List<SubscribedStudent> subscribedStudents;
 
-    private CourseInstructor[] courseInstructors;
+    private List<CourseInstructor> courseInstructors;
 
-    public StudentServiceImplement(CourseInfo[] coursesInfo, CourseInstanceWithSubscribe[] coursesWithSubs, SubscribedStudent[] subscribedStudents, CourseInstructor[] courseInstructors){
+    public StudentServiceImplement(List<CourseInfo> coursesInfo, List<CourseInstanceWithSubscribe> coursesWithSubs, List<SubscribedStudent> subscribedStudents, List<CourseInstructor> courseInstructors){
         this.coursesInfo = coursesInfo;
         this.coursesWithSubs = coursesWithSubs;
         this.subscribedStudents = subscribedStudents;
@@ -28,78 +30,92 @@ public class StudentServiceImplement implements StudentService{
         int currentStudentIndex = -1;
         int currentInstructorIndex = -1;
         try {
+            currentStudentIndex = IntStream.range(0, subscribedStudents.size())
+                    .filter(i -> subscribedStudents.get(i).getId() == studentId).
+                    findAny().
+                    getAsInt();
 
-            for (int i = 0; i < subscribedStudents.length; i++)
-                if (subscribedStudents[i].getId() == studentId)
-                    currentStudentIndex = i;
-
-            if (currentStudentIndex == -1)
+            if (currentStudentIndex == -1) {
                 throw new Exception("Несуществующий идентификатор студента!");
-
-            for (int i = 0; i < coursesWithSubs.length; i++)
-                if (coursesWithSubs[i].getId() == courseId)
-                    currentCourseInstanceIndex = i;
-
-            if (currentCourseInstanceIndex == -1)
-                throw new Exception("Несуществующий идентификатор курса!");
-
-            for (int i = 0; i < courseInstructors.length; i++) {
-                if(coursesWithSubs[currentCourseInstanceIndex].getInstructorId() == courseInstructors[i].getId())
-                    currentInstructorIndex = i;
             }
 
-            if (currentInstructorIndex == -1)
-                throw new Exception("Не найден инструктор курса!");
+            currentCourseInstanceIndex = IntStream.range(0, coursesWithSubs.size())
+                    .filter(i -> coursesWithSubs.get(i).getId() == courseId).
+                    findAny().
+                    getAsInt();
 
-            if (!coursesWithSubs[currentCourseInstanceIndex].getStartDate().isAfter(LocalDate.now()))
+            if (currentCourseInstanceIndex == -1) {
+                throw new Exception("Несуществующий идентификатор курса!");
+            }
+
+            int curCourseIns = currentCourseInstanceIndex;
+            currentInstructorIndex = IntStream.range(0, courseInstructors.size())
+                    .filter(i -> coursesWithSubs.get(curCourseIns).getInstructorId() == courseInstructors.get(i).getId()).
+                    findAny().
+                    getAsInt();
+
+            if (currentInstructorIndex == -1) {
+                throw new Exception("Не найден инструктор курса!");
+            }
+
+            if (!coursesWithSubs.get(currentCourseInstanceIndex).getStartDate().isAfter(LocalDate.now())) {
                 throw new Exception("Курс уже начался!");
+            }
 
             int currentCourseIndex = -1;
 
-            for (int i = 0; i < coursesInfo.length; i++)
-                if (coursesInfo[i].getId() == coursesWithSubs[currentCourseInstanceIndex].getCourseId())
-                    currentCourseIndex = i;
+            currentCourseIndex = IntStream.range(0, coursesInfo.size())
+                    .filter(i -> coursesInfo.get(i).getId() == coursesWithSubs.get(curCourseIns).getCourseId()).
+                    findAny().
+                    getAsInt();
 
             boolean correctStudentCategory = false;
 
-            for (int i = 0; i < coursesInfo[currentCourseIndex].getStudentCategories().length; i++)
-                if (coursesInfo[currentCourseIndex].getStudentCategories()[i] == subscribedStudents[currentStudentIndex].getStudentCategory()) {
-                    correctStudentCategory = true;
-                    break;
-                }
+            int curStud = currentStudentIndex;
+            int curCourse = currentCourseIndex;
+            correctStudentCategory = IntStream.range(0, coursesInfo.get(currentCourseIndex).getStudentCategories().size()).
+                    anyMatch(i -> coursesInfo.get(curCourse).getStudentCategories().get(i) == subscribedStudents.get(curStud).getStudentCategory());
 
-            if (!correctStudentCategory)
+            if (!correctStudentCategory) {
                 throw new Exception("Категория студента не соответствует требованиям курса!");
+            }
 
-            if(coursesInfo[currentCourseIndex].getPrerequisites() != null) {
+            if(coursesInfo.get(currentCourseIndex).getPrerequisites() != null) {
 
                 int counterPrerequisites = 0;
 
-                for (int i = 0; i < coursesInfo[currentCourseIndex].getPrerequisites().length; i++)
-                    for (int j = 0; j < subscribedStudents[currentStudentIndex].getCompletedCourses().length; j++)
-                        if (coursesInfo[currentCourseIndex].getPrerequisites()[i] == subscribedStudents[currentStudentIndex].getCompletedCourses()[j]) {
-                            counterPrerequisites++;
-                            break;
-                        }
+                for (int i = 0; i < coursesInfo.get(currentCourseIndex).getPrerequisites().size(); i++) {
+                    int curInd = i;
+                    int index = IntStream.range(0, subscribedStudents.get(currentStudentIndex).getCompletedCourses().size())
+                            .filter(j -> coursesInfo.get(curCourse).getPrerequisites().get(curInd) == subscribedStudents.get(curStud).getCompletedCourses().get(j))
+                            .findFirst()
+                            .orElse(-1);
+                    if (index != -1) {
+                        counterPrerequisites++;
+                    }
+                }
 
-                if (counterPrerequisites != coursesInfo[currentCourseIndex].getPrerequisites().length)
+                if (counterPrerequisites != coursesInfo.get(currentCourseIndex).getPrerequisites().size()) {
                     throw new Exception("Для записи студентом не пройденны все необходимые курсы!");
+                }
             }
 
-            if(coursesWithSubs[currentCourseInstanceIndex].getCapacity() != 0)
-                if (coursesWithSubs[currentCourseInstanceIndex].getCapacity() == coursesWithSubs[currentCourseInstanceIndex].getAmountSubscribedStudents())
+            if(coursesWithSubs.get(currentCourseInstanceIndex).getCapacity() != 0)
+                if (coursesWithSubs.get(currentCourseInstanceIndex).getCapacity() == coursesWithSubs.get(currentCourseInstanceIndex).getSubscribedStudents().size()) {
                     throw new Exception("На курсе нет мест!");
+                }
 
-            for (int i = 0; i < subscribedStudents[currentStudentIndex].getAmountSubscribedCourses(); i++) {
-                if (subscribedStudents[currentStudentIndex].getSubscribedCourses()[i].getId() == courseId)
+            for (int i = 0; i < subscribedStudents.get(currentStudentIndex).getSubscribedCourses().size(); i++) {
+                if (subscribedStudents.get(currentStudentIndex).getSubscribedCourses().get(i).getId() == courseId) {
                     throw new Exception("Студент уже записан на курс!");
+                }
             }
         } catch (Exception e) {
             return ActionStatus.NOK;
         }
-        coursesWithSubs[currentCourseInstanceIndex].addStudent(subscribedStudents[currentStudentIndex]);
-        subscribedStudents[currentStudentIndex].subscribeToCourse(coursesWithSubs[currentCourseInstanceIndex]);
-        courseInstructors[currentInstructorIndex].addStudent(subscribedStudents[currentStudentIndex]);
+        coursesWithSubs.get(currentCourseInstanceIndex).addStudent(subscribedStudents.get(currentStudentIndex));
+        subscribedStudents.get(currentStudentIndex).subscribeToCourse(coursesWithSubs.get(currentCourseInstanceIndex));
+        courseInstructors.get(currentInstructorIndex).addStudent(subscribedStudents.get(currentStudentIndex));
         return ActionStatus.OK;
     }
 
@@ -110,39 +126,46 @@ public class StudentServiceImplement implements StudentService{
         int currentInstructorIndex = -1;
 
         try {
-            for (int i = 0; i < subscribedStudents.length; i++)
-                if (subscribedStudents[i].getId() == studentId)
-                    currentStudentIndex = i;
+            currentStudentIndex = IntStream.range(0, subscribedStudents.size())
+                    .filter(i -> subscribedStudents.get(i).getId() == studentId).
+                    findAny().
+                    getAsInt();
 
-            if (currentStudentIndex == -1)
+            if (currentStudentIndex == -1) {
                 throw new Exception("Несуществующий идентификатор студента!");
-
-            for (int i = 0; i < coursesWithSubs.length; i++)
-                if (coursesWithSubs[i].getId() == courseId)
-                    currentCourseInstanceIndex = i;
-
-            if (currentCourseInstanceIndex == -1)
-                throw new Exception("Несуществующий идентификатор курса!");
-
-            for (int i = 0; i < courseInstructors.length; i++) {
-                if(coursesWithSubs[currentCourseInstanceIndex].getInstructorId() == courseInstructors[i].getId())
-                    currentInstructorIndex = i;
             }
 
-            if (currentInstructorIndex == -1)
-                throw new Exception("Не найден инструктор курса!");
+            currentCourseInstanceIndex = IntStream.range(0, coursesWithSubs.size())
+                    .filter(i -> coursesWithSubs.get(i).getId() == courseId).
+                    findAny().
+                    getAsInt();
 
-            if (!coursesWithSubs[currentCourseInstanceIndex].getStartDate().isAfter(LocalDate.now()))
+            if (currentCourseInstanceIndex == -1) {
+                throw new Exception("Несуществующий идентификатор курса!");
+            }
+
+            int curCourseIns = currentCourseInstanceIndex;
+            currentInstructorIndex = IntStream.range(0, courseInstructors.size())
+                    .filter(i -> coursesWithSubs.get(curCourseIns).getInstructorId() == courseInstructors.get(i).getId()).
+                    findAny().
+                    getAsInt();
+
+            if (currentInstructorIndex == -1) {
+                throw new Exception("Не найден инструктор курса!");
+            }
+
+            if (!coursesWithSubs.get(currentCourseInstanceIndex).getStartDate().isAfter(LocalDate.now())) {
                 throw new Exception("Курс уже начался!");
+            }
 
         }catch (Exception e){
             return ActionStatus.NOK;
         }
-        for(int i = 0; i < coursesWithSubs[currentCourseInstanceIndex].getAmountSubscribedStudents(); i++){
-            if(coursesWithSubs[currentCourseInstanceIndex].getSubscribedStudents()[i].getId() == studentId){
-                courseInstructors[currentInstructorIndex].tryDeleteStudent(subscribedStudents[currentStudentIndex]);
-                coursesWithSubs[currentCourseInstanceIndex].deleteStudentById(studentId);
-                subscribedStudents[currentStudentIndex].unsubscribeByCourseInstanceId(courseId);
+        for(int i = 0; i < coursesWithSubs.get(currentCourseInstanceIndex).getSubscribedStudents().size(); i++){
+            if(coursesWithSubs.get(currentCourseInstanceIndex).getSubscribedStudents().get(i).getId() == studentId){
+                courseInstructors.get(currentInstructorIndex).tryDeleteStudent(subscribedStudents.get(currentStudentIndex));
+                coursesWithSubs.get(currentCourseInstanceIndex).deleteStudentById(studentId);
+                subscribedStudents.get(currentStudentIndex).unsubscribeByCourseInstanceId(courseId);
                 return ActionStatus.OK;
             }
         }
@@ -150,23 +173,23 @@ public class StudentServiceImplement implements StudentService{
     }
 
     @Override
-    public CourseInstance[] findAllSubscriptionsByStudentId(long studentId){
+    public List<CourseInstanceWithSubscribe> findAllSubscriptionsByStudentId(long studentId){
 
         int currentStudentIndex = -1;
 
         try {
-            for (int i = 0; i < subscribedStudents.length; i++)
-                if (subscribedStudents[i].getId() == studentId)
-                    currentStudentIndex = i;
+            currentStudentIndex = IntStream.range(0, subscribedStudents.size())
+                    .filter(i -> subscribedStudents.get(i).getId() == studentId).
+                    findAny().
+                    getAsInt();
 
-            if (currentStudentIndex == -1)
+            if (currentStudentIndex == -1) {
                 throw new Exception("Несуществующий идентификатор студента!");
+            }
         }catch (Exception e){
             return null;
         }
 
-
-
-        return null;
+        return subscribedStudents.get(currentStudentIndex).getSubscribedCourses();
     }
 }

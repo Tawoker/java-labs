@@ -1,91 +1,77 @@
 package lab2.registration.model;
 
-import lab2.registration.reader.CourseDataReader;
-import lab2.registration.reader.StudentDataReader;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.IntStream;
 import java.io.IOException;
 
 public class CourseInstructor extends Instructor{
 
-    private CourseInstanceWithSubscribe[] teachingCourses;
+    private List<CourseInstanceWithSubscribe> teachingCourses;
 
-    private int amountTeachingCourses;
-
-    private SubscribedStudent[] myStudents;
+    private List<SubscribedStudent> myStudents;
 
 
     public CourseInstructor() throws IOException {
-        amountTeachingCourses = 0;
-        this.myStudents = new SubscribedStudent[new StudentDataReader().readBachelorStudentData().length + new StudentDataReader().readMasterStudentData().length];
-        this.teachingCourses = new CourseInstanceWithSubscribe[new CourseDataReader().readCourseInstanceWithSubscribe().length];
+        this.myStudents = new ArrayList<SubscribedStudent>();
+        this.teachingCourses = new ArrayList<CourseInstanceWithSubscribe>();
     }
 
-    public void addAllTeachingCourses(CourseInstanceWithSubscribe[] allCourses){
-        for (int i = 0; i < allCourses.length; i++) {
-            if(allCourses[i].getInstructorId() == this.getId()){
-                teachingCourses[amountTeachingCourses] = allCourses[i];
-                amountTeachingCourses++;
-            }
-        }
+    public void addAllTeachingCourses(List<CourseInstanceWithSubscribe> allCourses){
+        allCourses.stream().
+                filter(course -> course.getInstructorId() == this.getId()).
+                forEach(course -> {
+                    teachingCourses.add(course);
+                });
     }
 
     public void addStudent(SubscribedStudent student){
-        boolean alreadyHaveStudent = false;
-        for (int i = 0; i < myStudents.length; i++)
-            if(myStudents[i] == student)
-                alreadyHaveStudent = true;
-        if(!alreadyHaveStudent){
-            myStudents[getAmountMyStudents()] = student;
+        AtomicBoolean alreadyHaveStudent = new AtomicBoolean(false);
+        myStudents.stream().
+                filter(myStudent -> myStudent == student).
+                forEach(myStudent -> {
+                    alreadyHaveStudent.set(true);
+                });
+        if(!alreadyHaveStudent.get()) {
+            myStudents.add(student);
         }
     }
 
-    public SubscribedStudent[] getMyStudents() {
+    public List<SubscribedStudent> getMyStudents() {
         return myStudents;
     }
 
     public void tryDeleteStudent(SubscribedStudent student){
         int currentStudentIndex = -1;
 
-        for (int i = 0; i < getAmountMyStudents(); i++)
-            if(myStudents[i].getId() == student.getId())
-                currentStudentIndex = i;
+        currentStudentIndex = IntStream.range(0, myStudents.size())
+                .filter(i -> myStudents.get(i).getId() == student.getId()).
+                findAny().
+                getAsInt();
 
         int counterOfCourses = 0;
 
-        if(currentStudentIndex != -1){
-            for (int i = 0; i < amountTeachingCourses; i++) {
-                for (int j = 0; j < myStudents[currentStudentIndex].getAmountSubscribedCourses(); j++)
-                    if(myStudents[currentStudentIndex].getSubscribedCourses()[j].getId() == teachingCourses[i].getId())
-                        counterOfCourses++;
-                if(counterOfCourses >= 1)
+        SubscribedStudent curStudent= myStudents.get(currentStudentIndex);
+
+        if(currentStudentIndex != -1) {
+            for (int i = 0; i < teachingCourses.size(); i++) {
+                long teachingCourseId = teachingCourses.get(i).getId();
+                counterOfCourses = (int) IntStream.range(0, curStudent.getSubscribedCourses().size()).
+                        filter(j -> curStudent.getSubscribedCourses().get(j).getId() == teachingCourseId).
+                        count();
+                if(counterOfCourses >= 1) {
                     break;
+                }
             }
-            if(counterOfCourses <= 1){
+
+            if(counterOfCourses <= 1) {
                 deleteStudent(student);
             }
         }
     }
 
     public void deleteStudent(SubscribedStudent student) {
-        boolean flag = false;
-        for (int i = 0; i < myStudents.length - 1; i++) {
-            if (!flag) {
-                if (myStudents[i].getId() == student.getId()) {
-                    flag = true;
-                    myStudents[i] = myStudents[i + 1];
-                }
-            } else
-                myStudents[i] = myStudents[i + 1];
-
-            myStudents[myStudents.length - 1] = null;
-        }
-    }
-
-    public int getAmountMyStudents() {
-        int amount = 0;
-        for (int i = 0; i < myStudents.length; i++)
-            if(myStudents[i] != null)
-                amount++;
-        return amount;
+        myStudents.removeIf(myStudent -> myStudent.getId() == student.getId());
     }
 }

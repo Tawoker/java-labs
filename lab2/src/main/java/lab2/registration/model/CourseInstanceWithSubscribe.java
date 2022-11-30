@@ -1,51 +1,30 @@
 package lab2.registration.model;
 
-import lab2.registration.reader.StudentDataReader;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.io.IOException;
 
 public class CourseInstanceWithSubscribe extends CourseInstance {
 
-    private SubscribedStudent[] subscribedStudents;
+    private List<SubscribedStudent> subscribedStudents;
 
     public CourseInstanceWithSubscribe() throws IOException {
-        if (this.getCapacity() == 0)
-            this.subscribedStudents = new SubscribedStudent[new StudentDataReader().readBachelorStudentData().length + new StudentDataReader().readMasterStudentData().length];
-        else
-            this.subscribedStudents = new SubscribedStudent[this.getCapacity()];
+        this.subscribedStudents = new ArrayList<SubscribedStudent>();
     }
 
-    public int getAmountSubscribedStudents() {
-        int amount = 0;
-        for (int i = 0; i < subscribedStudents.length; i++)
-            if(subscribedStudents[i] != null)
-                amount++;
-        return amount;
-    }
-
-    public SubscribedStudent[] getSubscribedStudents() {
+    public List<SubscribedStudent> getSubscribedStudents() {
         return subscribedStudents;
     }
 
-    public void setSubscribedStudents(SubscribedStudent[] subscribedStudents) {
+    public void setSubscribedStudents(List<SubscribedStudent> subscribedStudents) {
         this.subscribedStudents = subscribedStudents;
     }
 
     public void addStudent(SubscribedStudent student){
-        this.subscribedStudents[getAmountSubscribedStudents()] = student;
+        this.subscribedStudents.add(student);
     }
 
     public void deleteStudentById(long id) {
-        boolean flag = false;
-        for (int i = 0; i < subscribedStudents.length - 1; i++) {
-            if (!flag) {
-                if (subscribedStudents[i].getId() == id) {
-                    flag = true;
-                    subscribedStudents[i] = subscribedStudents[i + 1];
-                }
-            }else
-                subscribedStudents[i] = subscribedStudents[i + 1];
-        }
-        subscribedStudents[subscribedStudents.length - 1] = null;
+        this.subscribedStudents.removeIf(student -> student.getId() == id);
     }
 }

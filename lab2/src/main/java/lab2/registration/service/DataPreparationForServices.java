@@ -5,17 +5,19 @@ import lab2.registration.reader.CourseDataReader;
 import lab2.registration.reader.InstructorDataReader;
 import lab2.registration.reader.StudentDataReader;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.io.IOException;
 
 public class DataPreparationForServices {
 
-    private CourseInfo[] coursesInfo;
+    private List<CourseInfo> coursesInfo;
 
-    private CourseInstanceWithSubscribe[] coursesWithSubs;
+    private List<CourseInstanceWithSubscribe> coursesWithSubs;
 
-    private SubscribedStudent[] subscribedStudents;
+    private List<SubscribedStudent> subscribedStudents;
 
-    private CourseInstructor[] courseInstructors;
+    private List<CourseInstructor> courseInstructors;
 
 
     public DataPreparationForServices() throws IOException {
@@ -23,54 +25,48 @@ public class DataPreparationForServices {
         coursesInfo = new CourseDataReader().readCourseInfoData();
         coursesWithSubs = new CourseDataReader().readCourseInstanceWithSubscribe();
 
-        SubscribedStudent[] bachelorsArray = new StudentDataReader().readBachelorStudentData();
-        SubscribedStudent[] mastersArray = new StudentDataReader().readMasterStudentData();
+        List<SubscribedStudent> bachelorsList = new StudentDataReader().readBachelorStudentData();
+        bachelorsList.forEach(x -> x.setStudentCategory(StudentCategory.BACHELOR));
 
-        subscribedStudents = new SubscribedStudent[bachelorsArray.length + mastersArray.length];
+        List<SubscribedStudent> mastersList = new StudentDataReader().readMasterStudentData();
+        mastersList.forEach(x -> x.setStudentCategory(StudentCategory.MASTER));
 
-        for(int i = 0; i < bachelorsArray.length; i++) {
-            subscribedStudents[i] = bachelorsArray[i];
-            subscribedStudents[i].setStudentCategory(StudentCategory.BACHELOR);
-        }
+        subscribedStudents = new ArrayList<SubscribedStudent>();
+        subscribedStudents.addAll(bachelorsList);
+        subscribedStudents.addAll(mastersList);
 
-        for (int i = bachelorsArray.length; i < mastersArray.length + bachelorsArray.length; i++) {
-            subscribedStudents[i] = mastersArray[i - bachelorsArray.length];
-            subscribedStudents[i].setStudentCategory(StudentCategory.MASTER);
-        }
-
-        for (int i = 0; i < courseInstructors.length; i++)
-            courseInstructors[i].addAllTeachingCourses(coursesWithSubs);
+        courseInstructors.forEach(courseInstructor -> courseInstructor.addAllTeachingCourses(coursesWithSubs));
     }
 
-    public CourseInfo[] getCoursesInfo() {
+    public List<CourseInfo> getCoursesInfo() {
         return coursesInfo;
     }
 
-    public void setCoursesInfo(CourseInfo[] coursesInfo) {
+    public void setCoursesInfo(List<CourseInfo> coursesInfo) {
         this.coursesInfo = coursesInfo;
     }
 
-    public CourseInstanceWithSubscribe[] getCoursesWithSubs() {
+    public List<CourseInstanceWithSubscribe> getCoursesWithSubs() {
         return coursesWithSubs;
     }
 
-    public void setCoursesWithSubs(CourseInstanceWithSubscribe[] coursesWithSubs) {
+    public void setCoursesWithSubs(List<CourseInstanceWithSubscribe> coursesWithSubs) {
         this.coursesWithSubs = coursesWithSubs;
     }
 
-    public SubscribedStudent[] getSubscribedStudents() {
+    public List<SubscribedStudent> getSubscribedStudents() {
         return subscribedStudents;
     }
 
-    public void setSubscribedStudents(SubscribedStudent[] subscribedStudents) {
+    public void setSubscribedStudents(List<SubscribedStudent> subscribedStudents) {
         this.subscribedStudents = subscribedStudents;
     }
 
-    public CourseInstructor[] getCourseInstructor() {
+    public List<CourseInstructor> getCourseInstructor() {
         return courseInstructors;
     }
 
-    public void setCourseInstructors(CourseInstructor[] courseInstructors) {
+    public void setCourseInstructors(List<CourseInstructor> courseInstructors) {
         this.courseInstructors = courseInstructors;
     }
 }

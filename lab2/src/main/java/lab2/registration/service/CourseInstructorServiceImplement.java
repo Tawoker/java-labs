@@ -1,22 +1,25 @@
 package lab2.registration.service;
 
 import lab2.registration.model.CourseInstructor;
-import lab2.registration.model.Student;
 import lab2.registration.model.SubscribedStudent;
 import lab2.registration.model.CourseInstanceWithSubscribe;
 import lab2.registration.model.CourseInfo;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
+
 public class CourseInstructorServiceImplement implements CourseInstructorService {
 
-    private CourseInfo[] coursesInfo;
+    private List<CourseInfo> coursesInfo;
 
-    private CourseInstanceWithSubscribe[] coursesWithSubs;
+    private List<CourseInstanceWithSubscribe> coursesWithSubs;
 
-    private SubscribedStudent[] subscribedStudents;
+    private List<SubscribedStudent> subscribedStudents;
 
-    private CourseInstructor[] courseInstructors;
+    private List<CourseInstructor> courseInstructors;
 
-    public CourseInstructorServiceImplement(CourseInfo[] coursesInfo, CourseInstanceWithSubscribe[] coursesWithSubs, SubscribedStudent[] subscribedStudents, CourseInstructor[] courseInstructors){
+    public CourseInstructorServiceImplement(List<CourseInfo> coursesInfo, List<CourseInstanceWithSubscribe> coursesWithSubs, List<SubscribedStudent> subscribedStudents, List<CourseInstructor> courseInstructors){
         this.coursesInfo = coursesInfo;
         this.coursesWithSubs = coursesWithSubs;
         this.subscribedStudents = subscribedStudents;
@@ -24,87 +27,87 @@ public class CourseInstructorServiceImplement implements CourseInstructorService
     }
 
     @Override
-    public SubscribedStudent[] findStudentsByCourseId(long courseId){
+    public List<SubscribedStudent> findStudentsByCourseId(long courseId){
         int currentCourseInstanceIndex = -1;
 
         try {
-            for (int i = 0; i < coursesWithSubs.length; i++)
-                if (coursesWithSubs[i].getId() == courseId)
-                    currentCourseInstanceIndex = i;
+            currentCourseInstanceIndex = IntStream.range(0, coursesWithSubs.size())
+                    .filter(i -> coursesWithSubs.get(i).getId() == courseId).
+                    findAny().
+                    getAsInt();
 
-            if (currentCourseInstanceIndex == -1)
+            if (currentCourseInstanceIndex == -1) {
                 throw new Exception("Несуществующий идентификатор курса!");
+            }
         } catch (Exception e) {
             return null;
         }
-        return coursesWithSubs[currentCourseInstanceIndex].getSubscribedStudents();
+        return coursesWithSubs.get(currentCourseInstanceIndex).getSubscribedStudents();
     }
 
         @Override
-    public SubscribedStudent[] findStudentsByInstructorId(long instructorId) {
+    public List<SubscribedStudent> findStudentsByInstructorId(long instructorId) {
         int currentInstructorIndex = -1;
         try
         {
-            for (int i = 0; i < courseInstructors.length; i++) {
-                if(courseInstructors[i].getId() == instructorId)
-                    currentInstructorIndex = i;
-            }
+            currentInstructorIndex = IntStream.range(0, courseInstructors.size())
+                    .filter(i -> courseInstructors.get(i).getId() == instructorId).
+                    findAny().
+                    getAsInt();
 
-            if (currentInstructorIndex == -1)
+            if (currentInstructorIndex == -1) {
                 throw new Exception("Несуществующий идентификатор преподавателя!");
+            }
 
         }catch (Exception e){
             return null;
         }
-        return courseInstructors[currentInstructorIndex].getMyStudents();
+        return courseInstructors.get(currentInstructorIndex).getMyStudents();
     }
 
     @Override
-    public CourseInstructor[] findReplacement(long instructorId, long courseId) {
+    public List<CourseInstructor> findReplacement(long instructorId, long courseId) {
         int currentInstructorIndex = -1;
         int currentCourseIndex = -1;
         try
         {
-            for (int i = 0; i < coursesInfo.length; i++)
-                if(coursesInfo[i].getId() == courseId)
-                    currentCourseIndex = i;
+            currentCourseIndex = IntStream.range(0, coursesInfo.size())
+                    .filter(i -> coursesInfo.get(i).getId() == courseId).
+                    findAny().
+                    getAsInt();
 
-            if(currentCourseIndex == -1)
+            if(currentCourseIndex == -1) {
                 throw new Exception("Несуществующий идентификатор курса!");
-
-            for (int i = 0; i < courseInstructors.length; i++) {
-                if(courseInstructors[i].getId() == instructorId)
-                    currentInstructorIndex = i;
             }
 
-            if (currentInstructorIndex == -1)
-                throw new Exception("Несуществующий идентификатор преподавателя!");
+            currentInstructorIndex = IntStream.range(0, courseInstructors.size())
+                    .filter(i -> courseInstructors.get(i).getId() == instructorId).
+                    findAny().
+                    getAsInt();
 
+            if (currentInstructorIndex == -1) {
+                throw new Exception("Несуществующий идентификатор преподавателя!");
+            }
         }catch (Exception e){
             return null;
         }
 
-        CourseInstructor[] canReplace = new CourseInstructor[courseInstructors.length - 1];
-        int counterCanReplace = 0;
+        List<CourseInstructor> canReplace = new ArrayList<CourseInstructor>();
 
-        for (int i = 0; i < courseInstructors.length; i++) {
-            if (i != currentInstructorIndex){
-                for (int j = 0; j < courseInstructors[i].getCanTeach().length; j++) {
-                    if(courseId == courseInstructors[i].getCanTeach()[j]){
-                        canReplace[counterCanReplace] = courseInstructors[i];
-                        counterCanReplace++;
-                        break;
-                    }
+        for (int i = 0; i < courseInstructors.size(); i++) {
+            CourseInstructor courseCanTeach = courseInstructors.get(i);
+            if (i != currentInstructorIndex) {
+                int index = IntStream.range(0, courseCanTeach.getCanTeach().size())
+                        .filter(j -> courseId == courseCanTeach.getCanTeach().get(j))
+                        .findFirst()
+                        .orElse(-1);
+
+                if (index != -1) {
+                    canReplace.add(courseInstructors.get(i));
                 }
             }
         }
 
-        CourseInstructor[] result = new CourseInstructor[counterCanReplace];
-
-        for (int i = 0; i < counterCanReplace; i++) {
-            result[i] = canReplace[i];
-        }
-
-        return result;
+        return canReplace;
     }
 }

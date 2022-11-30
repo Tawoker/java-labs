@@ -1,5 +1,7 @@
 package lab2.registration.model;
 
+import java.util.List;
+
 /**
  * Класс для информации о студенте
  */
@@ -8,13 +10,13 @@ public class Student extends Person {
     /**
      * список идентификаторов курсов (CourseInfo.id), пройденных студентом
      */
-    private long[] completedCourses;
+    private List<Long> completedCourses;
 
-    public long[] getCompletedCourses() {
+    public List<Long> getCompletedCourses() {
         return completedCourses;
     }
 
-    public void setCompletedCourses(long[] completedCourses) {
+    public void setCompletedCourses(List<Long> completedCourses) {
         this.completedCourses = completedCourses;
     }
 }

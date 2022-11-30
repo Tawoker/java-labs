@@ -1,5 +1,7 @@
 package lab2.registration.model;
 
+import java.util.List;
+
 /**
  * Класс для информации о преподавателе
  */
@@ -8,13 +10,13 @@ public class Instructor extends lab2.registration.model.Person {
     /**
      * Идентификаторы курсов, которые может вести преподаватель
      */
-    int[] canTeach;
+    List<Integer> canTeach;
 
-    public int[] getCanTeach(){
+    public List<Integer> getCanTeach(){
         return canTeach;
     }
 
-    public void setCanTeach(int[] canTeach){
+    public void setCanTeach(List<Integer> canTeach){
         this.canTeach = canTeach;
     }
     

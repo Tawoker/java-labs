@@ -1,7 +1,9 @@
 package lab2.registration.service;
 
 import lab2.registration.model.ActionStatus;
-import lab2.registration.model.CourseInstance;
+import lab2.registration.model.CourseInstanceWithSubscribe;
+
+import java.util.List;
 
 /**
  * Интерфейс сервиса для студентов
@@ -35,5 +37,5 @@ public interface StudentService {
      * @param studentId идентификатор студента
      * @return список всех курсов, на которые записан студент
      */
-    CourseInstance[] findAllSubscriptionsByStudentId(long studentId);
+    List<CourseInstanceWithSubscribe> findAllSubscriptionsByStudentId(long studentId);
 }
